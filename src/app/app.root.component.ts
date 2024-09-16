@@ -58,13 +58,18 @@ export class AppRootComponent implements OnInit {
     ) {}
 
     public async ngOnInit() {
+        // create a cookie with system signature
         this.captureSystemInfo();
 
         try {
             await this.auth.authenticate();
         }
         catch(err) {
-            window.location.href = '/auth?redirect_to='+encodeURIComponent(window.location.pathname + window.location.hash);
+            let redirect_to = window.location.pathname;
+            if(window.location.hash && window.location.hash !== '') {
+                redirect_to += window.location.hash;
+            }
+            window.location.href = '/auth?redirect_to='+encodeURIComponent(redirect_to);
             return;
         }
 
@@ -104,7 +109,9 @@ export class AppRootComponent implements OnInit {
                         }
                         if(data.params.menus.hasOwnProperty('left')) {
                             const leftMenu = await this.api.getMenu(this.package, data.params.menus.left);
-                            this.show_search_side_menu = leftMenu.show_search;
+                            if(leftMenu.hasOwnProperty('show_search') && leftMenu.show_search) {
+                                this.show_search_side_menu = true;
+                            }
                             // store full translated menu
                             this.leftMenu = this.translateMenu(leftMenu.items, leftMenu.translation);
                             // fill left pane with unfiltered menu
@@ -160,6 +167,10 @@ export class AppRootComponent implements OnInit {
             resolution: window.screen.width + 'x' + window.screen.height,
             platform: navigator.hasOwnProperty('platform')?navigator.platform:'',
             vendor: navigator.hasOwnProperty('vendor')?navigator.vendor:''
+            /*
+            agent: navigator.userAgent,
+            language: navigator.language
+            */
         };
 
         document.cookie = `system_info=${JSON.stringify(info)}; path=/; max-age=${60 * 60 * 24 * 365}`;
@@ -231,8 +242,12 @@ export class AppRootComponent implements OnInit {
 
             if( item.context.hasOwnProperty('view') ) {
                 let parts = item.context.view.split('.');
-                if(parts.length) descriptor.context.type = <string>parts.shift();
-                if(parts.length) descriptor.context.name = <string>parts.shift();
+                if(parts.length) {
+                    descriptor.context.type = <string>parts.shift();
+                }
+                if(parts.length) {
+                    descriptor.context.name = <string>parts.shift();
+                }
             }
 
             if( item.context.hasOwnProperty('purpose') && item.context.purpose == 'create') {

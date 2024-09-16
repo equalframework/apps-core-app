@@ -2,6 +2,7 @@
     <div class="app-header">
         <app-header
             [section]="name"
+            [fragment]="'/'+package+'/'+app"
             [i18n]="translationsMenuTop"
             [items]="topMenuItems"
             (toggleMenu)="toggleSideMenu()"

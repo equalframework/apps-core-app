@@ -21,7 +21,7 @@ app-menu-list-item.hidden {
     border-bottom: 1px solid #c8ced3;
     z-index: 1;
     width: 100%;
-    flex: 0 0 55px;    
+    flex: 0 0 55px;
 }
 
 .app-body {
@@ -31,7 +31,7 @@ app-menu-list-item.hidden {
     overflow: hidden;
 
     mat-nav-list {
-        padding: 0px 1px 0 0;
+        padding: 0;
         margin-top: -1px;
     }
 }
@@ -74,11 +74,11 @@ app-menu-list-item.hidden {
 
 .app-body .app-asidemenu {
     display: flex;
-    margin-top: 55px;    
+    margin-top: 55px;
     flex-direction: column;
     padding: 0;
 
-    background: rgba(0,0,0,0.04);    
+    background: rgba(0,0,0,0.04);
 
     margin-right: -250px;
     width: 250px;
@@ -90,6 +90,9 @@ app-menu-list-item.hidden {
     position: fixed;
     padding: 0;
     width: 200px;
+    height: calc(100vh - 55px);
+    box-sizing: border-box;
+    border-right: solid 1px #d3d3d3;
 }
 
 
