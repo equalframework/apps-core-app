@@ -10,13 +10,23 @@
             (select)="onSelectItem($event)">
         </app-header>
     </div>
-    <div class="app-body">
+    <div *ngIf="notifications.length && show_notifications" class="app-notif" [class.visible]="notifications.length && show_notifications">
+        <div class="notifications">
+            <div *ngFor="let item of notifications" class="notification" [title]="item.message">
+                <strong>{{item.title}}</strong> - {{item.message}}
+            </div>
+        </div>
+        <div style="margin-left: auto; margin-right: 25px;">
+            <button mat-icon-button (click)="show_notifications = false"><mat-icon>close</mat-icon></button>
+        </div>
+    </div>
+    <div class="app-body" [class.menu-minified]="!show_side_bar">
 
-        <div class="app-sidebar" [class.show]="show_side_bar">
+        <div class="app-sidebar">
             <!-- app-sidebar -->
             <div class="side-inner">
-                <div *ngIf="show_search_side_menu" style="height: 48px; display: flex; align-items: center; position: relative; background-color: white; border-bottom: solid 1px lightgrey; border-right: solid 1px lightgrey;">
-                    <input class="search-menu" style="border: 0; outline: 0; padding: 0 40px 0 10px; width: 100%; height: 100%; font-size: 16px;"
+                <div *ngIf="show_search_side_menu" class="search-menu">
+                    <input
                         matInput
                         placeholder="Search in menu"
                         autocomplete="off"
@@ -42,7 +52,7 @@
         </div>
 
         <div class="app-asidemenu" [class.show]="show_side_menu">
-            <app-sidemenu></app-sidemenu>
+            <app-sidemenu (updated)="onUpdateSideMenu($event)"></app-sidemenu>
         </div>
 
     </div>

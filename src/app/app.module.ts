@@ -13,7 +13,9 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppRootComponent } from './app.root.component';
 import { AppComponent } from './in/app.component';
 
-import { MatTableModule} from '@angular/material/table'
+/* injectable components */
+import { TestComponent } from './_components/test.component';
+
 /* HTTP requests interception dependencies */
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 
@@ -28,7 +30,8 @@ registerLocaleData(localeFr);
 @NgModule({
   declarations: [
     AppRootComponent,
-    AppComponent
+    AppComponent,
+    TestComponent
   ],
   imports: [
     AppRoutingModule,
@@ -37,8 +40,7 @@ registerLocaleData(localeFr);
     SharedLibModule,
     MatNativeDateModule,
     PlatformModule,
-    NgxMaterialTimepickerModule.setLocale('fr-BE'),
-    MatTableModule
+    NgxMaterialTimepickerModule.setLocale('fr-BE')
   ],
   providers: [
     // add HTTP interceptor to inject AUTH header to any outgoing request

@@ -1,9 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { ContextService, ApiService, AuthService, EnvService } from 'sb-shared-lib';
 import { AppStateService } from 'src/app/_services/AppStateService';
+import { ComponentsRegistryService } from 'src/app/_services/ComponentsRegistryService';
+import { ModalService } from 'src/app/_services/ModalService';
+import { TestComponent } from 'src/app/_components/test.component';
 
 import * as $ from 'jquery';
 import { type } from 'jquery';
+import { UserClass } from 'sb-shared-lib/lib/classes/user.class';
 
 
 /*
@@ -23,8 +27,8 @@ export class AppRootComponent implements OnInit {
 
     public show_side_menu: boolean = false;
     public show_side_bar: boolean = true;
-
     public show_search_side_menu: boolean = false;
+    public show_notifications: boolean = true;
 
     public filter: string;
 
@@ -36,6 +40,8 @@ export class AppRootComponent implements OnInit {
 
     // display name of the App
     public name: string;
+
+    public notifications: any[] = [];
 
     // original default context, if provided
     private originalContext: any = {};
@@ -50,11 +56,13 @@ export class AppRootComponent implements OnInit {
     public translationsMenuTop: any = {};
 
     constructor(
-        private context:ContextService,
-        private api:ApiService,
-        private auth:AuthService,
-        private env:EnvService,
-        private params: AppStateService
+        private context: ContextService,
+        private api: ApiService,
+        private auth: AuthService,
+        private env: EnvService,
+        private params: AppStateService,
+        private registry: ComponentsRegistryService,
+        private modal: ModalService
     ) {}
 
     public async ngOnInit() {
@@ -69,9 +77,84 @@ export class AppRootComponent implements OnInit {
             if(window.location.hash && window.location.hash !== '') {
                 redirect_to += window.location.hash;
             }
-            window.location.href = '/auth?redirect_to='+encodeURIComponent(redirect_to);
+            window.location.href = '/auth?redirect_to=' + encodeURIComponent(redirect_to);
             return;
         }
+
+        /**
+         * Register global components to be injected through Modal service
+         * #memo - injectable components must be declared in root module in order to benefit from SharedLib
+         */
+        this.registry.register('test', TestComponent);
+        this.registry.register('createSignature', TestComponent);
+
+
+        /**
+         * Listens for global "App:open-component" events dispatched from anywhere in the page context,
+         * including non-Angular sources (e.g. equal-UI, vanilla JS or external scripts).
+         *
+         * When triggered, it extracts the component name and optional data payload from the event's `detail`,
+         * retrieves the registered component from the ComponentRegistryService,
+         * and, if found, opens it in a modal dialog using ModalService.
+         *
+         * The event's `detail` must contain the name of a registered component along with optional data.
+         * Expected structure:
+         *   - `component`: component name - a string identifying the ComponentType (expected to be registered)
+         *   - `data`: an arbitrary object to pass as input to the modal component
+         *   - `onSuccess`: a callback to be triggered when the component signals successful completion
+         *   - `onError`: a callback to be triggered in case of failure or cancellation
+         *
+         * If the component is not found in the registry, a warning is issued to the console.
+         *
+         */
+        window.addEventListener('App:open-component', (event: any) => {
+            console.log('AppRootComponent - received App:open-component', event);
+            const {
+                    component,
+                    data = {},
+                    onSuccess = () => {},
+                    onError = () => {}
+                } = event.detail;
+
+            const componentType = this.registry.get(component);
+
+            if(componentType) {
+                // callbacks transmitted with underscore (_onSuccess) toi avoid collisions with data fields
+                this.modal.open(componentType, {
+                    ...data,
+                    _onSuccess: onSuccess,
+                    _onError: onError,
+                });
+            }
+            else {
+                console.warn(`Component "${component}" not registered`);
+            }
+        });
+
+        /*
+            window.dispatchEvent(new CustomEvent('App:open-component', {
+            detail: {
+                component: 'test', // le nom enregistré dans ton registry
+                data: {
+                    foo: 'bar', // toutes les données attendues dans le composant
+                },
+                onSuccess: () => console.log('Success callback déclenché'),
+                onError: () => console.error('Error callback déclenché'),
+            }
+            }));
+        */
+
+        this.auth.getObservable().subscribe( async (user: UserClass) => {
+            try {
+                const environment = await this.env.getEnv();
+                if(environment.hasOwnProperty('notifications') && environment.notifications) {
+                    this.loadNotifications(user.id);
+                }
+            }
+            catch(response) {
+                // unexpected error
+            }
+        });
 
         this.params.pathParam.subscribe( async (param:any) => {
             this.package = param.package;
@@ -84,6 +167,19 @@ export class AppRootComponent implements OnInit {
             }
         });
 
+    }
+
+    private async loadNotifications(user_id: number) {
+        try {
+            const data:any = await this.api.collect(
+                    'core\\notification\\Notification',
+                    [['is_persistent', '=', true],['user_id', '=', user_id]],
+                    ['title', 'message']);
+            this.notifications = data;
+        }
+        catch(response) {
+            console.warn('unexpected error', response);
+        }
     }
 
     private loadParams() {
@@ -165,8 +261,8 @@ export class AppRootComponent implements OnInit {
         // #memo - we use navigator.platform and navigator.vendor despite being marked as deprecated since there is no replacement
         let info = {
             resolution: window.screen.width + 'x' + window.screen.height,
-            platform: navigator.hasOwnProperty('platform')?navigator.platform:'',
-            vendor: navigator.hasOwnProperty('vendor')?navigator.vendor:''
+            platform: navigator.hasOwnProperty('platform') ? navigator.platform : '',
+            vendor: navigator.hasOwnProperty('vendor') ? navigator.vendor : ''
             /*
             agent: navigator.userAgent,
             language: navigator.language
@@ -266,6 +362,10 @@ export class AppRootComponent implements OnInit {
 
     public toggleSideBar() {
         this.show_side_bar = !this.show_side_bar;
+    }
+
+    public onUpdateSideMenu(show: boolean) {
+        this.show_side_menu = show;
     }
 
 }

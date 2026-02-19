@@ -18,10 +18,42 @@ app-menu-list-item.hidden {
     padding: 0;
     margin: 0;
     background-color: #fff;
-    border-bottom: 1px solid #c8ced3;
-    z-index: 1;
+    /*border-bottom: 1px solid #c8ced3;*/
+    z-index: 5;
     width: 100%;
     flex: 0 0 55px;
+}
+
+.app-notif {
+    position: relative;
+    top: 55px;
+    height: 55px;
+    border: solid 1px #78a1af;
+    background: #edfaff;
+    display:  flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: all 1s ease-in-out;
+
+    &.visible {
+        opacity: 1;
+        transition: all 1s ease-in-out;
+    }
+
+    .notifications {
+        flex: 1;
+        margin-left: 25px;
+        max-width: calc(100% - 50px);
+
+        .notification {
+            width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    }
+
 }
 
 .app-body {
@@ -29,78 +61,122 @@ app-menu-list-item.hidden {
     flex-direction: row;
     flex-grow: 1;
     overflow: hidden;
+    background-color: #0000000a;
+    height: calc(100vh - 55px);
 
     mat-nav-list {
         padding: 0;
         margin-top: -1px;
     }
+
+    .app-main {
+        position: relative;
+        flex: 1;
+        margin-top: 55px;
+        display: flex;
+        flex-flow: column nowrap;
+        min-width: 0;
+        min-height: calc(100vh - 55px);
+        margin-left: 200px;
+
+    /* 2 modes for this : either SB list view or any other type of view */
+    /* this will prevent global scrollbar and add a specific scrollbar for table */
+        height: calc(100vh - 55px);
+    /* this will end-up in a global scrollbar only if the content is higher than the viewport */
+        /* #memo - not sure of this : as is, it is always applied */
+        /* height: 100%; */
+    }
+
+    &.menu-minified {
+        .app-main {
+            margin-left: 55px
+        }
+
+        .app-sidebar {
+            width: 50px;
+
+            &:hover {
+                width: 200px;
+                .side-inner {
+                    box-shadow: 0px 1px 10px grey;
+                }
+
+                .item-title {
+                    display: inline-block !important;
+                }
+            }
+
+            .side-inner {
+                height: 100vh;
+                background: white;
+
+                .item-title {
+                    display: none;
+                }
+            }
+        }
+
+    }
+
+    .app-sidebar {
+        position: absolute;
+        z-index: 4;
+        margin-top: 55px;
+        padding: 0;
+        width: 200px;
+
+        .side-inner {
+            position: relative;
+            padding: 0;
+            width: 100%;
+            height: calc(100vh - 55px - 60px);
+            box-sizing: border-box;
+            /* border-right: solid 1px #d3d3d3; */
+            padding-top: 8px;
+
+            .search-menu {
+                display: flex;
+                height: 48px;
+                align-items: center;
+                position: relative;
+                background-color: white;
+                margin: 5px;
+                border-radius: 5px;
+                width: calc(100% - 10px);
+                overflow: hidden;
+
+                input {
+                    border: 0; outline: 0; padding: 0 40px 0 10px; width: 100%; height: 100%; font-size: 16px;
+                }
+            }
+        }
+
+
+    }
+
+    .app-asidemenu {
+        display: flex;
+        margin-top: 65px;
+        border-top-left-radius: 10px;
+        flex-direction: column;
+        padding: 0;
+
+        background: rgba(0,0,0,0.04);
+
+        margin-right: -250px;
+        width: 250px;
+        flex: 0 0 250px;
+        order: 3;
+
+        &.show {
+            margin-right: 0;
+        }
+
+    }
+
 }
 
-.app-body .app-main {
-    position: relative;
-    flex: 1;
-    min-width: 0;
-    order: 2;
-    margin-top: 55px;
-    display: flex;
-    flex-flow: column nowrap;
-    min-height: calc(100vh - 55px);
 
-/* 2 modes for this : either SB list view or any other type of view */
-/* this will prevent global scrollbar and add a specific scrollbar for table */
-    height: calc(100vh - 55px);
-/* this will end-up in a global scrollbar only if the content is higher than the viewport */
-    height: 100%;
-}
-
-.app-body .app-sidebar {
-    position: relative;
-    display: flex;
-    margin-top: 55px;
-    flex-direction: column;
-    padding: 0;
-
-    background-color: rgba(0,0,0,0.04);
-    margin-left: -200px;
-    width: 200px;
-    flex: 0 0 200px;
-    order: 1;
-}
-
-.app-body .app-sidebar.show {
-    margin-left: 0;
-}
-
-
-.app-body .app-asidemenu {
-    display: flex;
-    margin-top: 55px;
-    flex-direction: column;
-    padding: 0;
-
-    background: rgba(0,0,0,0.04);
-
-    margin-right: -250px;
-    width: 250px;
-    flex: 0 0 250px;
-    order: 3;
-}
-
-.app-body .app-sidebar .side-inner {
-    position: fixed;
-    padding: 0;
-    width: 200px;
-    height: calc(100vh - 55px);
-    box-sizing: border-box;
-    border-right: solid 1px #d3d3d3;
-}
-
-
-.app-body .app-asidemenu.show {
-    margin-right: 0;
-}
-
-
-.app-header, .app-asidemenu, .app-main, .app-sidebar {
-    transition: margin-left .25s,margin-right .25s,width .25s,flex .25s;
+.app-header, .app-asidemenu, .app-main, .app-sidebar, .app-sidebar .side-inner {
+    transition: margin-left .25s, margin-right .25s, width .25s, background-color .25s;
 }
